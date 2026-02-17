@@ -16,18 +16,21 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE_NAME}", ".")
-                }
+                sh 'docker build -t rishuagrawal1309/calculator:latest .'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'DockerHubCred') {
-                        docker.image("${DOCKER_IMAGE_NAME}").push('latest')
-                    }
+                withCredentials([usernamePassword(
+                        credentialsId: 'DockerHubCred',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push rishuagrawal1309/calculator:latest
+                    '''
                 }
             }
         }
@@ -36,6 +39,15 @@ pipeline {
             steps {
                 sh 'ansible-playbook -i inventory deploy.yml'
             }
+        }
+    }
+
+    post {
+        success {
+            echo '🎉 Pipeline executed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed. Check logs.'
         }
     }
 }
