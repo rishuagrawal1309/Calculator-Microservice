@@ -1,0 +1,16 @@
+---
+- name: Pull Docker Image from Docker Hub
+  hosts: localhost
+  connection: local
+
+  tasks:
+
+    - name: Pull Docker Image
+      shell: docker pull rishuagrawal1309/calculator
+
+    - name: Remove old container
+      shell: docker rm -f calculator || true
+
+    - name: Run container
+      shell: docker run -it -d --name calculator rishuagrawal1309/calculator
+
